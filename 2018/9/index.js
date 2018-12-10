@@ -1,4 +1,4 @@
-const readInput = require('../readInput');
+const readInput = require('../../lib/readInput');
 
 (async() => {
   const input = await readInput();

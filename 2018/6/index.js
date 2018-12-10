@@ -1,5 +1,5 @@
-const readInput = require('../readInput');
-const { create2dArray, arraySet, flatMap, mapCount } = require('../tools');
+const readInput = require('../../lib/readInput');
+const { create2dArray, arraySet, flatMap, mapCount } = require('../../lib/array');
 
 const nearestCoordinate = (src, points) => {
   const allDistances = points.map(([x, y]) => Math.abs(src.y - y) + Math.abs(src.x -x));
