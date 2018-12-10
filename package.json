@@ -1,0 +1,23 @@
+{
+  "name": "adventofcode",
+  "version": "0.0.1",
+  "description": "Ini adalah repository untuk solusi Advent of Code.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha **/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mblonyox/adventofcode.git"
+  },
+  "keywords": [],
+  "author": "Sukirno <mblonyox@gmail.com> (https://mblonyox.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mblonyox/adventofcode/issues"
+  },
+  "homepage": "https://github.com/mblonyox/adventofcode#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
