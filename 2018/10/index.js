@@ -67,7 +67,7 @@ class Space {
     const anchor = this.anchor();
     const area = create2dArray(anchor.h+1, anchor.w+1, ' ');
     this.stars.forEach(star => {
-      area[star.y - anchor.y][star.x - anchor.x] = '#'
+      area[star.y - anchor.y][star.x - anchor.x] = '\u2588'
     })
     let result = 'Part 1 : \r\n' +
       area.map(row => row.join('')).join('\r\n') + '\r\n\r\n';
