@@ -12,12 +12,13 @@ const { create2dArray, flatMap } = require('../../lib/array');
   });
   const space = new Space(stars);
   let lastDistance;
+  let result;
   do {
-    console.clear();
-    if(space.distance() < 200) space.print();
+    if(space.distance() < 100) result = space.print();
     lastDistance = space.distance();
     space.lapse();
   } while (space.distance() < lastDistance);
+  console.log(result);
 })();
 
 class Star {
@@ -64,11 +65,14 @@ class Space {
 
   print() {
     const anchor = this.anchor();
-    const area = create2dArray(anchor.h+1, anchor.w+1, '.');
+    const area = create2dArray(anchor.h+1, anchor.w+1, ' ');
     this.stars.forEach(star => {
-      area[star.y - anchor.y][star.x - anchor.x] = '#'
+      area[star.y - anchor.y][star.x - anchor.x] = '\u2588'
     })
-    console.log(`Time : ${this.time}`);
-    console.log(area.map(row => row.join(' ')).join('\n') + '\n\n\n');
+    let result = 'Part 1 : \r\n' +
+      area.map(row => row.join('')).join('\r\n') + '\r\n\r\n';
+
+    result += `Part 2 : ${this.time}`;
+    return result;
   }
 }
