@@ -2,107 +2,96 @@ const readInput = require('../../lib/readInput');
 
 (async() => {
   const input = await readInput();
-  const map = input.split('\n').map(row => row.split(''));
 
-  const carts = [];
-  for (let i = 0; i < map.length; i++) {
-    for (let j = 0; j < map[i].length; j++) {
-      const str = map[i][j];
-      const char = chars[str];
-      if(!char) map[i][j] = null
-      else {
-        const road = new Road(j, i, char.tipe, str);
-        if(char.tipe === 'cart') {
-          const cart = new Cart(road, char.direction);
-          road.cart = cart;
-          carts.push(cart);
+  const setup = (input) => {
+    const map = input.split('\n').map(row => row.split(''));
+    const carts = [];
+    const tracks = {};
+    for (let i = 0; i < map.length; i++) {
+      for (let j = 0; j < map[i].length; j++) {
+        const char = map[i][j];
+        if(['^','v','<','>'].includes(char)) {
+          const direction = {
+            '^':[-1,0],
+            'v':[1,0],
+            '<':[0,-1],
+            '>':[0,1]
+          }[char]
+          carts.push(new Cart([i,j], direction));
+        } else if(['\\','/','+'].includes(char)) {
+          tracks[[i,j]] = char;
         }
-        if(map[i-1] && map[i-1][j]) {
-          map[i-1][j].s = road;
-          road.n = map[i-1][j];
-        }
-        if(map[i][j-1]) {
-          map[i][j-1].e = road;
-          road.w = map[i][j-1];
-        }
-        map[i][j] = road;
+      }
+    }
+    return {carts, tracks}
+  }
+
+  // Part 1
+  const {carts: carts1, tracks: tracks1} = setup(input);
+  let crash = null;
+  while(!crash) {
+    carts1.sort((a,b) => a.position[0] === b.position[0] ? a.position[1] - b.position[1] : a.position[0] - b.position[0])
+    for (let i = 0; i < carts1.length; i++) {
+      const cart = carts1[i];
+      const newPos = [cart.position[0] + cart.direction[0], cart.position[1] + cart.direction[1]]
+      if(~carts1.findIndex((cart) => cart.position.toString() === newPos.toString())) {
+        crash = newPos.reverse().toString();
+        break;
+      } else {
+        cart.position = newPos;
+        cart.turn(tracks1[newPos]);
       }
     }
   }
-  // console.log(carts);
-  while(true) {
-    map.forEach(row => row.forEach(road => {
-      if(road && road.cart) road.cart.move();
-    }))
+  console.log('Part 1 : ' + crash)
+
+  // Part 2
+  let {carts: carts2, tracks: tracks2} = setup(input);
+  let tick = 0;
+  while(carts2.length > 1) {
+    carts2.sort((a,b) => a.position[0] === b.position[0] ? a.position[1] - b.position[1] : a.position[0] - b.position[0])
+    for (let i = 0; i < carts2.length; i++) {
+      const cart = carts2[i];
+      const newPos = [cart.position[0] + cart.direction[0], cart.position[1] + cart.direction[1]];
+      if(~carts2.findIndex((cart) => cart.position.toString() === newPos.toString())) {
+        const cart2 = carts2.find((cart) => cart.position.toString() === newPos.toString());
+        cart.crashed = true;
+        cart.position = newPos;
+        cart2.crashed = true;
+      } else if(!cart.crashed){
+        cart.position = newPos;
+        cart.turn(tracks2[newPos]);
+      }
+    }
+    carts2 = carts2.filter(cart => !cart.crashed);
+    // console.log('Tick ' + tick++);
+    // console.log(carts2)
   }
-})().catch(err => console.log(err.message));
-
-const directions = {
-  'n': {left: 'w', right: 'e'},
-  'e': {left: 'n', right: 's'},
-  's': {left: 'e', right: 'w'},
-  'w': {left: 's', right: 'n'}
-};
-
-const chars = {
-  '^': {tipe: 'cart', direction: 'n'},
-  '>': {tipe: 'cart', direction: 'e'},
-  'v': {tipe: 'cart', direction: 's'},
-  '<': {tipe: 'cart', direction: 'w'},
-  '|': {tipe: 'road', },
-  '-': {tipe: 'road', },
-  '/': {tipe: 'curve',},
-  '\\': {tipe: 'curve'},
-  '+': {tipe: 'intersection'}
-}
-
-class Road {
-  constructor(x,y, tipe, char) {
-    this.x = x;
-    this.y = y;
-    this.tipe = tipe;
-    this.char = char;
-    // Connected road
-    this.n = null;
-    this.e = null;
-    this.s = null;
-    this.w = null;
-  }
-}
+  console.log('Part 2 : ' + carts2[0].position.reverse())
+})().catch(err => console.log(err));
 
 class Cart {
-  constructor(road, direction) {
-    this.road = road;
+  constructor(position, direction) {
+    this.position = position;
     this.direction = direction;
-    this.turnCounter = 0;
+    this.intrsctnMod = 0;
+    this.crashed = false;
   }
 
-  move() {
-    const nextRoad = this.road[this.direction]
-    if(nextRoad.cart) throw(new Error(`Collision on road: ${nextRoad.x},${nextRoad.y}`));
-    this.road.cart = null;
-    this.road = nextRoad;
-    this.road.cart = this;
-    switch(this.road.tipe) {
-      case 'intersection':
-        if(this.turnCounter%3 === 0) this.turn(true)
-        else if(this.turnCounter%3 === 2) this.turn(false);
-        this.turnCounter++;
-        break;
-      case 'curve':
-        if ((this.road.char === '/' && this.direction === 'e') ||
-          (this.road.char === '\\' && this.direction === 's')) {
-            this.turn(true);
-          } else {
-            this.turn(false);
-          }
-        break;
-      default:
-        break;
+  turn(track) {
+    if(track === '+') {
+      if(this.intrsctnMod === 0) {
+        if(this.direction[0]) this.direction = [this.direction[1], this.direction[0]]
+        else this.direction = [-this.direction[1], -this.direction[0]]
+      } else if(this.intrsctnMod === 2) {
+        if(this.direction[1]) this.direction = [this.direction[1], this.direction[0]]
+        else this.direction = [-this.direction[1], -this.direction[0]]
+      }
+      this.intrsctnMod = (this.intrsctnMod + 1)%3
+    } else if(track === '\\') {
+      this.direction = [this.direction[1], this.direction[0]]
+    } else if(track === '/'){
+      this.direction = [-this.direction[1], -this.direction[0]]
     }
-  }
-
-  turn(toLeft) {
-    this.direction = toLeft ? directions[this.direction].left : directions[this.direction].right;
   }
 }
