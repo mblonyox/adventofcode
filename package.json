@@ -19,5 +19,8 @@
   "homepage": "https://github.com/mblonyox/adventofcode#readme",
   "devDependencies": {
     "mocha": "^5.2.0"
+  },
+  "dependencies": {
+    "@ericandrewlewis/bitmap": "github:ericandrewlewis/bitmap-js"
   }
 }
