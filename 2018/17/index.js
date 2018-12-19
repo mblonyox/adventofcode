@@ -12,38 +12,57 @@ const { create2dArray } = require('../../lib/array');
       let tuple = [a, i];
       clays.push(xy === 'x' ? tuple : tuple.reverse())
     }
-    console.log(`Processed ${string}`)
+    // console.log({xy,a,b1,b2})
   });
-  const claysString = clays.map(tuple => `${tuple}`);
-  const maxY = Math.max(...clays.map(tuple => tuple[1])) + 1;
-  const map2d = create2dArray(maxY, 1000, (x,y) => ~claysString.indexOf(`${[x,y]}`) ? 1 : 0);
+  const maxY = Math.max(...clays.map(tuple => tuple[1]));
+  const minY = Math.min(...clays.map(tuple => tuple[1]));
+  const maxX = Math.max(...clays.map(tuple => tuple[0]));
+  const minX = Math.min(...clays.map(tuple => tuple[0]));
 
-  // Create Image
-  const unpaddedImageData = Buffer.concat(map2d.map(row => {
-    let buffer = new Uint8Array(row.length / 4);
-    for (let i = 0; i < row.length; i += 4) {
-      buffer[i / 4] =
-        row[i] |
-        (row[i + 1] << 2) |
-        (row[i + 2] << 4) |
-        (row[i + 3] << 6);
+  const height = maxY-minY+1;
+  const width = maxX-minX+3;
+  const map2d = create2dArray(height, width, 0);
+  clays.forEach(([x,y]) => {
+    map2d[y-minY][x-minX+1] = 1;
+  })
+
+  const sampleMap = [
+    [1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,1,0,1,0,0],
+    [0,0,0,0,0,0,0,1],
+
+  ]
+  await create4bpp(map2d);
+})();
+
+create4bpp = async (map2d) => {
+  const height = map2d.length;
+  const width = map2d[0].length;
+  const buffersize = (width - width%8) /2;
+
+  const imageData = Buffer.concat(map2d.map(row => {
+    const buffer = new Uint8Array(buffersize);
+    for (let i = 0; i < width; i += 2) {
+      buffer[i / 2] = (row[i] << 4) | row[i+1];
     }
     return buffer;
-  }))
-  const width = 1000;
-  const height = maxY;
+  }).reverse(), height*buffersize);
+
   const colorTable = Buffer.from([
     0xFF, 0xFF, 0xFF, 0x00,
-    0x00, 0x00, 0x00, 0x00,
     0xFF, 0x00, 0xFF, 0x00,
-    0x00, 0xFF, 0xFF, 0x00
+    0x00, 0xFF, 0xFF, 0x00,
+    0x00, 0x00, 0x00, 0x00
   ])
   await createBitmapFile({
     filename: 'output.bmp',
-    imageData: padImageData({unpaddedImageData, width, height}),
+    imageData: imageData,
     width,
     height,
-    bitsPerPixel: 2,
+    bitsPerPixel: 4,
     colorTable
   })
-})();
+}
