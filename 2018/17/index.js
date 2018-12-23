@@ -1,6 +1,6 @@
-const { padImageData, createBitmapFile } = require('@ericandrewlewis/bitmap');
+const { createBitmapFile } = require('@ericandrewlewis/bitmap');
 const readInput = require('../../lib/readInput');
-const { create2dArray } = require('../../lib/array');
+const { create2dArray, flatMap, mapCount } = require('../../lib/array');
 
 (async() => {
   const input = await readInput();
@@ -12,7 +12,6 @@ const { create2dArray } = require('../../lib/array');
       let tuple = [a, i];
       clays.push(xy === 'x' ? tuple : tuple.reverse())
     }
-    // console.log({xy,a,b1,b2})
   });
   const maxY = Math.max(...clays.map(tuple => tuple[1]));
   const minY = Math.min(...clays.map(tuple => tuple[1]));
@@ -26,15 +25,75 @@ const { create2dArray } = require('../../lib/array');
     map2d[y-minY][x-minX+1] = 1;
   })
 
-  const sampleMap = [
-    [1,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,1,0,1,0,0],
-    [0,0,0,0,0,0,0,1],
+  /**
+   * Char map:
+   * . => 0
+   * # => 1
+   * | => 2
+   * ~ => 3
+   */
 
-  ]
+  const dropDown = ([x,y]) => {
+    map2d[y][x] = 2;
+    if(y+1 >= height) return;
+    const below = map2d[y+1][x];
+    if(below === 0) dropDown([x,y+1]);
+    if(below === 1 || below === 3) fillUp([x,y])
+  }
+
+  const fillUp = ([x,y]) => {
+    if(reachBothWalls([x,y])) {
+      fillLevel([x,y]);
+      fillUp([x,y-1])
+    } else {
+      flowLevel([x,y])
+    }
+  }
+
+  const reachBothWalls = (pos) => reachWall(pos, -1) && reachWall(pos, 1)
+  const reachWall = ([x,y], offset = 1) => {
+    let current = x;
+    while (true) {
+      if (map2d[y+1][current] === 0) return false;
+      if (map2d[y][current] === 1) return true;
+      current += offset;
+    }
+  }
+
+  const fillLevel = (pos) => {
+    fillSide(pos, -1);
+    fillSide(pos, 1)
+  }
+  const fillSide = ([x,y], offset = 1) => {
+    let current = x;
+    while(true) {
+      if(map2d[y][current] === 1) return;
+      map2d[y][current] = 3;
+      current += offset;
+    }
+  }
+
+  const flowLevel = (pos) => {
+    flowSide(pos, -1);
+    flowSide(pos, 1);
+  }
+  const flowSide = ([x,y], offset = 1) => {
+    let current = x;
+    while(true) {
+      if(map2d[y][current] === 1 || map2d[y][current] === 3) return;
+      map2d[y][current] = 2;
+      if(map2d[y+1][current] === 0) return dropDown([current, y]);
+      current += offset;
+    }
+  }
+
+  dropDown([501-minX, 0]);
+
+  const result = mapCount(flatMap(map2d));
+
+  console.log('Part 1 : ' + result[2] + result[3]);
+  console.log('Part 2 : ' + result[3]);
+
   await create4bpp(map2d);
 })();
 
@@ -53,9 +112,9 @@ create4bpp = async (map2d) => {
 
   const colorTable = Buffer.from([
     0xFF, 0xFF, 0xFF, 0x00,
-    0xFF, 0x00, 0xFF, 0x00,
-    0x00, 0xFF, 0xFF, 0x00,
-    0x00, 0x00, 0x00, 0x00
+    0x00, 0x00, 0x00, 0x00,
+    0x80, 0x80, 0x00, 0x00,
+    0xFF, 0x00, 0x00, 0x00
   ])
   await createBitmapFile({
     filename: 'output.bmp',
