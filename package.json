@@ -21,6 +21,7 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
-    "@ericandrewlewis/bitmap": "github:ericandrewlewis/bitmap-js"
+    "@ericandrewlewis/bitmap": "github:ericandrewlewis/bitmap-js",
+    "ora": "^3.0.0"
   }
 }
