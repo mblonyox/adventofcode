@@ -30,40 +30,40 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	path1 := createPath(line1)
+	path1 := createPathMap(line1)
 	line2, err := csvReader.Read()
 	if err != nil {
 		log.Fatal(err)
 	}
-	path2 := createPath(line2)
+	path2 := createPathMap(line2)
 
 	result1 = math.MaxInt32
 	result2 = math.MaxInt32
 
-	for s1, p1 := range path1 {
-		for s2, p2 := range path2 {
-			if p1 == p2 {
-				if distance := distanceFromCentral(p1); distance < result1 {
-					result1 = distance
-				}
-				if steps := s1 + s2 + 2; steps < result2 {
-					result2 = steps
-				}
+	for point, step1 := range path1 {
+		if step2, exist := path2[point]; exist {
+			if distance := distanceFromCentral(point); distance < result1 {
+				result1 = distance
+			}
+			if steps := step1 + step2; steps < result2 {
+				result2 = steps
 			}
 		}
 	}
+
 	spin.Stop()
 	fmt.Printf("Part 1: %d \r\n", result1)
 	fmt.Printf("Part 2: %d \r\n", result2)
 	fmt.Printf("Processing time %s", time.Since(startTime))
 }
 
-func createPath(line []string) []complex128 {
-	path := []complex128{}
+func createPathMap(line []string) map[complex128]int {
+	pathMap := make(map[complex128]int)
 	position := 0 + 0i
-	for _, vector := range line {
-		direction := vector[0:1]
-		distance, err := strconv.ParseInt(vector[1:], 10, 64)
+	step := 0
+	for _, move := range line {
+		direction := move[0:1]
+		distance, err := strconv.ParseInt(move[1:], 10, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,10 +78,11 @@ func createPath(line []string) []complex128 {
 			case "R":
 				position += 1 + 0i
 			}
-			path = append(path, position)
+			step++
+			pathMap[position] = step
 		}
 	}
-	return path
+	return pathMap
 }
 
 func calculateDistance(p1, p2 complex128) int {
