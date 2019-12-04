@@ -1,20 +1,17 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"math"
+	"log"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
 )
 
-var min = flag.Int("min", 0, "Minimum range")
-var max = flag.Int("max", math.MaxInt32, "Maximum range")
-
 func main() {
-	flag.Parse()
 	startTime := time.Now()
 	var result1, result2 int
 	spin := spinner.New(spinner.CharSets[35], 100*time.Millisecond)
@@ -27,57 +24,65 @@ func main() {
 		fmt.Printf("Processing took %s", time.Since(startTime))
 	}()
 
-	for i := *min; i <= *max; i++ {
-		if checkPassword(i) {
+	if len(os.Args) < 2 {
+		log.Fatal("Please provide input...")
+	}
+	input := os.Args[1]
+	nums := strings.Split(input, "-")
+	if len(nums) < 2 {
+		log.Fatal("Please provide maximum range...")
+	}
+	min, err := strconv.Atoi(nums[0])
+	if err != nil {
+		log.Fatalf("Min range is not a number: %s", err.Error())
+	}
+	max, err := strconv.Atoi(nums[1])
+	if err != nil {
+		log.Fatalf("Max range is not a number: %s", err.Error())
+	}
+
+	for i := min; i <= max; i++ {
+		r1, r2 := checkPassword(i)
+		if r1 {
 			result1++
-			if checkLargestMatch(i) {
-				result2++
-			}
+		}
+		if r2 {
+			result2++
 		}
 	}
 
 }
 
-func checkPassword(num int) bool {
+func checkPassword(num int) (result1, result2 bool) {
 	pass := strconv.Itoa(num)
 	// Check length == 6
-	if len(pass) != 6 {
-		return false
-	}
+	// if len(pass) != 6 {
+	// 	return
+	// }
 	// Check within range
-	if num < *min || num > *max {
-		return false
-	}
+	// if num < *min || num > *max {
+	// 	return
+	// }
 	// Check decrease and double
-	prev := '0'
-	double := false
-	for _, d := range pass {
-		if d < prev {
-			return false
+	count := 1
+	for i := 0; i < 5; i++ {
+		a := pass[i]
+		b := pass[i+1]
+		if a > b {
+			return false, false
 		}
-		if d == prev {
-			double = true
-		}
-		prev = d
-	}
-	return double
-}
-
-func checkLargestMatch(num int) bool {
-	pass := strconv.Itoa(num)
-	prev := '0'
-	count := 0
-	lastCount := 0
-	for _, d := range pass {
-		if d == prev {
+		if a == b {
 			count++
+			result1 = true
 		} else {
-			if count > 0 {
-				lastCount = count
+			if count == 2 {
+				result2 = true
 			}
-			count = 0
-			prev = d
+			count = 1
 		}
 	}
-	return lastCount == 1
+	if count == 2 {
+		result2 = true
+	}
+	return
 }
