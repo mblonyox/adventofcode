@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mblonyox/adventofcode/tools"
+	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
 )
 
 var min, max int
@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	defer tools.StopSpinner(tools.CreateSpinner(), func() {
+	defer spinner.StopSpinner(spinner.CreateSpinner(), func() {
 		fmt.Printf("Part 1: %d \r\nPart 2: %d \r\n", result1, result2)
 	})
 
