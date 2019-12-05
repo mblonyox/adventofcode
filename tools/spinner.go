@@ -16,7 +16,7 @@ type Spinner struct {
 // CreateSpinner do create a Spinner instance with pre configured
 func CreateSpinner() Spinner {
 	s := Spinner{
-		spinner.New(spinner.CharSets[35], 200*time.Millisecond),
+		spinner.New(spinner.CharSets[54], 200*time.Millisecond),
 		time.Now(),
 	}
 	s.Prefix = "Mohon tunggu~ : "
