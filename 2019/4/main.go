@@ -6,40 +6,23 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/briandowns/spinner"
+	"github.com/mblonyox/adventofcode/tools"
 )
 
+var min, max int
+var result1, result2 int
+
 func main() {
-	startTime := time.Now()
-	var result1, result2 int
-	spin := spinner.New(spinner.CharSets[35], 100*time.Millisecond)
-	spin.Prefix = "Mohon tunggu~ : "
-	spin.Start()
+	var err error
+	min, max, err = parseArg(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	defer func() {
-		spin.Stop()
+	defer tools.StopSpinner(tools.CreateSpinner(), func() {
 		fmt.Printf("Part 1: %d \r\nPart 2: %d \r\n", result1, result2)
-		fmt.Printf("Processing took %s", time.Since(startTime))
-	}()
-
-	if len(os.Args) < 2 {
-		log.Fatal("Please provide input...")
-	}
-	input := os.Args[1]
-	nums := strings.Split(input, "-")
-	if len(nums) < 2 {
-		log.Fatal("Please provide maximum range...")
-	}
-	min, err := strconv.Atoi(nums[0])
-	if err != nil {
-		log.Fatalf("Min range is not a number: %s", err.Error())
-	}
-	max, err := strconv.Atoi(nums[1])
-	if err != nil {
-		log.Fatalf("Max range is not a number: %s", err.Error())
-	}
+	})
 
 	for i := min; i <= max; i++ {
 		r1, r2 := checkPassword(i)
@@ -53,16 +36,41 @@ func main() {
 
 }
 
+func parseArg(args []string) (min, max int, err error) {
+
+	if len(args) < 2 {
+		err = fmt.Errorf("no arguments provided")
+		return
+	}
+	input := args[1]
+	nums := strings.Split(input, "-")
+	if len(nums) < 2 {
+		err = fmt.Errorf("invalid argument")
+		return
+	}
+	min, err = strconv.Atoi(nums[0])
+	if err != nil {
+		err = fmt.Errorf("failed to parse min range: %s", err.Error())
+		return
+	}
+	max, err = strconv.Atoi(nums[1])
+	if err != nil {
+		err = fmt.Errorf("failed to parse max rang: %s", err.Error())
+		return
+	}
+	return
+}
+
 func checkPassword(num int) (result1, result2 bool) {
 	pass := strconv.Itoa(num)
 	// Check length == 6
-	// if len(pass) != 6 {
-	// 	return
-	// }
+	if len(pass) != 6 {
+		return
+	}
 	// Check within range
-	// if num < *min || num > *max {
-	// 	return
-	// }
+	if num < min || num > max {
+		return
+	}
 	// Check decrease and double
 	count := 1
 	for i := 0; i < 5; i++ {

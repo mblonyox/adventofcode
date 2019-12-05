@@ -6,6 +6,9 @@ import (
 
 func TestCheckPassword(t *testing.T) {
 
+	min = 111111
+	max = 888888
+
 	type testCase struct {
 		input       int
 		result1     bool
@@ -31,6 +34,24 @@ func TestCheckPassword(t *testing.T) {
 			result1:     false,
 			result2:     false,
 			description: "123789 does not meet these criteria (no double).",
+		},
+		{
+			input:       111110,
+			result1:     false,
+			result2:     false,
+			description: "111110 is below the min range provided (111111).",
+		},
+		{
+			input:       888889,
+			result1:     false,
+			result2:     false,
+			description: "111110 is above the max range provided (888888).",
+		},
+		{
+			input:       1234567,
+			result1:     false,
+			result2:     false,
+			description: "1234567 is above 6 digits.",
 		},
 	}
 
@@ -71,4 +92,33 @@ func TestCheckPassword(t *testing.T) {
 		}
 	})
 
+}
+
+func TestParseArg(t *testing.T) {
+	if _, _, err := parseArg([]string{"main.exe"}); err == nil {
+		t.Error("no argument provided should be error")
+	}
+
+	if _, _, err := parseArg([]string{"main.exe", "21412"}); err == nil {
+		t.Error("argument should contain '-' separator")
+	}
+
+	if _, _, err := parseArg([]string{"main.exe", "qwedsa-111111"}); err == nil {
+		t.Error("invalid min range number in argument")
+	}
+
+	if _, _, err := parseArg([]string{"main.exe", "111111-qwesda"}); err == nil {
+		t.Error("invalid min range number in argument")
+	}
+
+	min, max, err := parseArg([]string{"main.exe", "111111-999999"})
+	if err != nil {
+		t.Errorf("unexpected error : %s", err.Error())
+	}
+	if min != 111111 {
+		t.Errorf("wrong min range result, got: %d, want: %d", min, 111111)
+	}
+	if max != 999999 {
+		t.Errorf("wrong max range result, got: %d, want: %d", max, 999999)
+	}
 }
