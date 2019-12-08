@@ -6,13 +6,12 @@ import (
 )
 
 // New make a computer object
-func New(code []int, inputs ...int) Computer {
+func New(code []int) Computer {
 	memory := make([]int, len(code))
 	copy(memory, code)
 	return Computer{
-		memory:  memory,
-		inputs:  inputs,
-		outputs: []int{},
+		memory: memory,
+		inputs: make(chan int, 8),
 	}
 }
 
@@ -21,7 +20,19 @@ type Computer struct {
 	memory  []int
 	pointer int
 	inputs,
-	outputs []int
+	outputs chan int
+}
+
+// Input into the channel
+func (c *Computer) Input(inputs ...int) {
+	for _, input := range inputs {
+		c.inputs <- input
+	}
+}
+
+// Close the inputs channel
+func (c *Computer) Close() {
+	close(c.inputs)
 }
 
 func (c *Computer) adds(mode byte) {
@@ -54,18 +65,20 @@ func (c *Computer) multiplies(mode byte) {
 
 func (c *Computer) input(mode byte) {
 	p1 := c.memory[c.pointer+1]
-	c.memory[p1] = c.inputs[0]
-	c.inputs = c.inputs[1:]
+	c.memory[p1] = <-c.inputs
 	c.pointer += 2
 }
 
-func (c *Computer) ouput(mode byte) {
+func (c *Computer) output(mode byte) int {
 	p1 := c.memory[c.pointer+1]
 	if mode&1 == 0 {
 		p1 = c.memory[p1]
 	}
-	c.outputs = append(c.outputs, p1)
+	if c.outputs != nil {
+		c.outputs <- p1
+	}
 	c.pointer += 2
+	return p1
 }
 
 func (c *Computer) jumpIfTrue(mode byte) {
@@ -163,10 +176,6 @@ func (c *Computer) RunD2(noun, verb int) int {
 			c.adds(mode)
 		case 2:
 			c.multiplies(mode)
-		case 3:
-			c.input(mode)
-		case 4:
-			c.ouput(mode)
 		case 99:
 			halt = true
 		default:
@@ -177,7 +186,9 @@ func (c *Computer) RunD2(noun, verb int) int {
 }
 
 // RunD5P1 run the computer with Day 5 Part 1 Opcodes
-func (c *Computer) RunD5P1() int {
+func (c *Computer) RunD5P1(inputs ...int) int {
+	c.Input(inputs...)
+	outputs := []int{}
 	halt := false
 	for !halt {
 		opcode, mode := c.parseInstruction()
@@ -189,19 +200,21 @@ func (c *Computer) RunD5P1() int {
 		case 3:
 			c.input(mode)
 		case 4:
-			c.ouput(mode)
+			outputs = append(outputs, c.output(mode))
 		case 99:
 			halt = true
 		default:
 			c.pointer++
 		}
 	}
-	return c.outputs[len(c.outputs)-1]
+	return outputs[len(outputs)-1]
 }
 
 // RunD5P2 run the computer with Day 5 Part 2 Opcodes
-func (c *Computer) RunD5P2() int {
+func (c *Computer) RunD5P2(inputs ...int) int {
+	c.Input(inputs...)
 	halt := false
+	outputs := []int{}
 	for !halt {
 		opcode, mode := c.parseInstruction()
 		switch opcode {
@@ -212,7 +225,7 @@ func (c *Computer) RunD5P2() int {
 		case 3:
 			c.input(mode)
 		case 4:
-			c.ouput(mode)
+			outputs = append(outputs, c.output(mode))
 		case 5:
 			c.jumpIfTrue(mode)
 		case 6:
@@ -227,5 +240,10 @@ func (c *Computer) RunD5P2() int {
 			c.pointer++
 		}
 	}
-	return c.outputs[len(c.outputs)-1]
+	return outputs[len(outputs)-1]
+}
+
+// Listen other computer outputs into this computer inputs
+func (c *Computer) Listen(c1 *Computer) {
+	c1.outputs = c.inputs
 }

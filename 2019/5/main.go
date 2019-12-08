@@ -27,11 +27,13 @@ func main() {
 }
 
 func getResult1(code []int) int {
-	com := intcode.New(code, 1)
-	return com.RunD5P1()
+	com := intcode.New(code)
+	defer com.Close()
+	return com.RunD5P1(1)
 }
 
 func getResult2(code []int) int {
-	com := intcode.New(code, 5)
-	return com.RunD5P2()
+	com := intcode.New(code)
+	defer com.Close()
+	return com.RunD5P2(5)
 }
