@@ -11,5 +11,37 @@
       "})();",
       ""
     ]
+  },
+  "Add starter main function in go" : {
+    "scope": "go",
+    "prefix": "main",
+    "body": [
+      "package main",
+      "",
+      "import (",
+      "\t\"fmt\"",
+      "",
+      "\t\"github.com/mblonyox/adventofcode/pkg/tools/spinner\"",
+      ")",
+      "",
+      "func main() {",
+      "",
+      "\tvar result1, result2 int",
+      "\tdefer spinner.StopSpinner(spinner.CreateSpinner(), func() {",
+      "\t\tfmt.Printf(\"Part 1: %d \\r\\nPart 2: %d \\r\\n\", result1, result2)",
+      "\t})",
+      "",
+      "\tresult1 = getResult1()",
+      "\tresult2 = getResult2()",
+      "}",
+      "",
+      "func getResult1() (result int) {",
+      "\treturn",
+      "}",
+      "",
+      "func getResult2() (result int) {",
+      "\treturn",
+      "}",
+    ] 
   }
 }
