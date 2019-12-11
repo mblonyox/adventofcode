@@ -33,6 +33,11 @@ func (c *Computer) Input(inputs ...int) {
 	}
 }
 
+// Output to other channel
+func (c *Computer) Output(ch chan int64) {
+	c.outputs = ch
+}
+
 // Close the inputs channel
 func (c *Computer) Close() {
 	close(c.inputs)
