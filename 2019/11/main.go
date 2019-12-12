@@ -12,9 +12,14 @@ import (
 
 func main() {
 
-	var result1, result2 int
+	var result1 int
+	var result2 [][]rune
 	defer spinner.StopSpinner(spinner.CreateSpinner(), func() {
-		fmt.Printf("Part 1: %d \r\nPart 2: %d \r\n", result1, result2)
+		fmt.Printf("Part 1: %d \r\n", result1)
+		fmt.Println("Part 2:")
+		for _, line := range result2 {
+			fmt.Println(string(line))
+		}
 	})
 
 	code, err := parser.ParseIntCsv()
@@ -23,7 +28,7 @@ func main() {
 	}
 
 	result1 = getResult1(code)
-	result2 = getResult2()
+	result2 = getResult2(code)
 }
 
 func getResult1(code []int) (result int) {
@@ -32,8 +37,11 @@ func getResult1(code []int) (result int) {
 	return len(r.panels)
 }
 
-func getResult2() (result int) {
-	return
+func getResult2(code []int) (result [][]rune) {
+	r := newRobot(code)
+	r.panels[0+0i] = true
+	r.run()
+	return r.drawPanel()
 }
 
 type direction int
@@ -59,20 +67,20 @@ func newRobot(code []int) robot {
 	}
 }
 
-func (r *robot) run() {
+func (r *robot) run(input ...int) {
 	ch := make(chan int64)
 	r.computer.Output(ch)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		r.computer.RunD9(0)
+		r.computer.RunD9()
 		wg.Done()
 	}()
 	go func() {
 		for {
+			r.see()
 			r.paint(<-ch == 1)
 			r.turn(<-ch == 1)
-			r.see()
 		}
 	}()
 	wg.Wait()
@@ -108,4 +116,48 @@ func (r *robot) turn(toRight bool) {
 	case left:
 		r.position += -1 + 0i
 	}
+}
+
+func (r *robot) drawPanel() [][]rune {
+	var maxX, minX, maxY, minY float64
+	for k := range r.panels {
+		x := real(k)
+		y := imag(k)
+		if x > maxX {
+			maxX = x
+		}
+		if x < minX {
+			minX = x
+		}
+		if y > maxY {
+			maxY = y
+		}
+		if y < minY {
+			minY = y
+		}
+	}
+	width := int(maxX - minX + 1)
+	height := int(maxY - minY + 1)
+
+	grid := make2dGrid(width, height, '█')
+
+	for k, isWhite := range r.panels {
+		if isWhite {
+			x := int(real(k) - minX)
+			y := int(maxY - imag(k))
+			grid[y][x] = '░'
+		}
+	}
+	return grid
+}
+
+func make2dGrid(width, height int, initial rune) [][]rune {
+	grid := make([][]rune, height)
+	for i := 0; i < len(grid); i++ {
+		grid[i] = make([]rune, width)
+		for j := 0; j < len(grid[i]); j++ {
+			grid[i][j] = initial
+		}
+	}
+	return grid
 }
