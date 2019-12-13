@@ -4,36 +4,53 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/mblonyox/adventofcode/pkg/2019/intcode"
 	"github.com/mblonyox/adventofcode/pkg/tools/parser"
+	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
 	termbox "github.com/nsf/termbox-go"
 )
 
 func main() {
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-	defer termbox.Close()
+
+	var result1, result2 int
+	defer spinner.StopSpinner(spinner.CreateSpinner(), func() {
+		fmt.Printf("Part 1: %d \r\nPart 2: %d \r\n", result1, result2)
+	})
 
 	code, err := parser.ParseIntCsv()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ar := newArcade(code)
-	ar.run()
+	result1 = getResult1(code)
+	result2 = getResult2(code)
+
+}
+
+func getResult1(code []int) (result int) {
+	arc := newArcade(code)
+	arc.run()
+	return arc.blocks
+}
+
+func getResult2(code []int) (result int) {
+	code[0] = 2
+	arc := newArcade(code)
+	arc.run()
+	return arc.score
 }
 
 type arcade struct {
 	computer intcode.Computer
-	score    int
+	blocks,
+	score,
+	xBall,
+	xPaddle int
 }
 
 func newArcade(code []int) arcade {
-	code[0] = 2
-
 	return arcade{
 		computer: intcode.New(code),
 	}
@@ -50,11 +67,31 @@ func (a *arcade) joystick() {
 			} else {
 				a.computer.Input(0)
 			}
+		case termbox.EventInterrupt:
+			log.Fatal("Terminated")
 		}
 	}
 }
 
+func (a *arcade) auto() {
+	// to slow down the animation
+	time.Sleep(17 * time.Millisecond)
+	if a.xBall == a.xPaddle || a.xPaddle == 0 {
+		a.computer.Input(0)
+	} else if a.xBall < a.xPaddle {
+		a.computer.Input(-1)
+	} else {
+		a.computer.Input(1)
+	}
+}
+
 func (a *arcade) run() {
+	err := termbox.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer termbox.Close()
+
 	ch := make(chan int64)
 	var wg sync.WaitGroup
 	a.computer.Output(ch)
@@ -68,14 +105,14 @@ func (a *arcade) run() {
 	wg.Wait()
 }
 
-func writeScore(s int) {
+func (a *arcade) writeScore() {
 	text := "Score :"
 	for i, r := range text {
-		termbox.SetCell(i, 0, r, termbox.ColorWhite, termbox.ColorBlack)
+		termbox.SetCell(i, 1, r, termbox.ColorWhite, termbox.ColorBlack)
 	}
-	score := fmt.Sprintf("%09d", s)
+	score := fmt.Sprintf("%09d", a.score)
 	for i, r := range score {
-		termbox.SetCell(i+7, 0, r, termbox.ColorWhite, termbox.ColorBlack)
+		termbox.SetCell(i+7, 1, r, termbox.ColorWhite, termbox.ColorBlack)
 	}
 }
 
@@ -91,7 +128,7 @@ func (a *arcade) draw(ch chan int64) {
 
 		if x == -1 && y == 0 {
 			a.score = int(id)
-			writeScore(a.score)
+			a.writeScore()
 			continue
 		}
 
@@ -110,16 +147,20 @@ func (a *arcade) draw(ch chan int64) {
 			tile = '#'
 			fg = termbox.ColorYellow
 			bg = termbox.ColorBlack
+			a.blocks++
 		case 3:
 			tile = '='
 			fg = termbox.ColorCyan
 			bg = termbox.ColorMagenta
+			a.xPaddle = x
 		case 4:
 			tile = 'o'
 			fg = termbox.ColorRed
 			bg = termbox.ColorBlack
+			a.xBall = x
+			go a.auto()
 		}
-		termbox.SetCell(x, y+1, tile, fg, bg)
+		termbox.SetCell(x, y+2, tile, fg, bg)
 		termbox.Flush()
 	}
 }
