@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/mblonyox/adventofcode/pkg/tools/parser"
 	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
@@ -37,7 +38,14 @@ func getResult1(s string) (result int) {
 }
 
 func getResult2(s string) (result int) {
-
+	s = strings.Repeat(s, 10000)
+	f := newFft(s)
+	offset := f.toInt(0, 7)
+	f = f[offset:]
+	for i := 0; i < 100; i++ {
+		f.phase2()
+	}
+	result = f.toInt(0, 8)
 	return
 }
 
@@ -54,6 +62,22 @@ func (f *fft) phase() {
 		result[i] = abs(temp) % 10
 	}
 	*f = result
+	return
+}
+
+func (f *fft) phase2() {
+	s := f.sum()
+	for i := 0; i < len(*f); i++ {
+		t := (*f)[i]
+		(*f)[i] = s % 10
+		s -= t
+	}
+}
+
+func (f fft) sum() (result int) {
+	for _, n := range f {
+		result += n
+	}
 	return
 }
 
