@@ -56,19 +56,18 @@ func main() {
 	g := getCameraView(code)
 
 	result1 = getResult1(g)
-	result2 = getResult2(g)
+	result2 = getResult2(g, code)
 }
 
 func getResult1(g grid) (result int) {
 	return sumAlignment(g)
 }
 
-func getResult2(g grid) (result int) {
+func getResult2(g grid, code []int) (result int) {
 	path := tracePath(g)
 	pathStr := strings.Join(path, ",")
 	m, a, b, c := splitPath(pathStr)
-	fmt.Println(m, a, b, c)
-	return
+	return getDust(code, m, a, b, c)
 }
 
 func getCameraView(code []int) grid {
@@ -161,7 +160,6 @@ func splitPath(path string) (Main, A, B, C string) {
 				if !strings.ContainsAny(Main, "0123456789LR") {
 					return
 				}
-				fmt.Println(Main)
 			}
 		}
 	}
@@ -180,4 +178,19 @@ func getRestPath(path string, chars ...string) (result string) {
 func getSubPath(path string, n int) string {
 	p := strings.Split(path, ",")
 	return strings.Trim(strings.Join(p[:n], ","), ",")
+}
+
+func getDust(code []int, m, a, b, c string) int {
+	code[0] = 2
+	com := intcode.New(code)
+	go func() {
+		inputStr := m + "\n" + a + "\n" + b + "\n" + c + "\nn\n"
+		inputs := make([]int, len(inputStr))
+		for i, n := range []byte(inputStr) {
+			inputs[i] = int(n)
+		}
+		com.Input(inputs...)
+	}()
+	out := com.RunD9()
+	return int(out[len(out)-1])
 }
