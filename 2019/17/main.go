@@ -8,6 +8,7 @@ import (
 	"github.com/mblonyox/adventofcode/pkg/2019/intcode"
 	"github.com/mblonyox/adventofcode/pkg/tools/parser"
 	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
+	"github.com/nsf/termbox-go"
 )
 
 type grid map[complex128]rune
@@ -182,9 +183,12 @@ func getSubPath(path string, n int) string {
 
 func getDust(code []int, m, a, b, c string) int {
 	code[0] = 2
+	ch := make(chan int64)
 	com := intcode.New(code)
+	com.Output(ch)
+	go drawOutput(ch)
 	go func() {
-		inputStr := m + "\n" + a + "\n" + b + "\n" + c + "\nn\n"
+		inputStr := m + "\n" + a + "\n" + b + "\n" + c + "\ny\n"
 		inputs := make([]int, len(inputStr))
 		for i, n := range []byte(inputStr) {
 			inputs[i] = int(n)
@@ -192,5 +196,54 @@ func getDust(code []int, m, a, b, c string) int {
 		com.Input(inputs...)
 	}()
 	out := com.RunD9()
+	close(ch)
 	return int(out[len(out)-1])
+}
+
+func drawOutput(ch <-chan int64) {
+	cleanScreen()
+	err := termbox.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer termbox.Close()
+
+	offsetX := 1
+	offsetY := 2
+
+	var prev rune
+	var row, col int
+	row = offsetY
+	for {
+		out, ok := <-ch
+		if !ok {
+			break
+		}
+		r := rune(out)
+		switch r {
+		case '\n':
+			if prev == '\n' {
+				row = offsetY
+			} else {
+				row++
+			}
+			col = offsetX
+		case '#':
+			termbox.SetCell(col, row, ' ', termbox.ColorDefault, termbox.ColorWhite)
+			col++
+		case '.':
+			termbox.SetCell(col, row, ' ', termbox.ColorDefault, termbox.ColorBlack)
+			col++
+		default:
+			termbox.SetCell(col, row, r, termbox.ColorGreen, termbox.ColorWhite)
+			col++
+		}
+		prev = r
+		termbox.Flush()
+	}
+}
+
+func cleanScreen() {
+	termbox.Init()
+	termbox.Close()
 }
