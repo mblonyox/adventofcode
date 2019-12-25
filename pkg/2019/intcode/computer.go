@@ -26,6 +26,11 @@ type Computer struct {
 	outputs chan int64
 }
 
+// IO get the input/output channels
+func (c *Computer) IO() (in, out chan int64) {
+	return c.inputs, c.outputs
+}
+
 // Input into the channel
 func (c *Computer) Input(inputs ...int) {
 	for _, input := range inputs {
