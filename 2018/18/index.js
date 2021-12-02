@@ -1,5 +1,5 @@
-const readInput = require('../../lib/readInput');
-const { mapCount, flatMap } = require('../../lib/array');
+const readInput = require('../lib/readInput');
+const { mapCount, flatMap } = require('../lib/array');
 
 (async() => {
   const input = await readInput();

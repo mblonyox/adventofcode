@@ -1,5 +1,5 @@
 const ora = require('ora');
-const readInput = require('../../lib/readInput');
+const readInput = require('../lib/readInput');
 
 (async() => {
   const input = await readInput();

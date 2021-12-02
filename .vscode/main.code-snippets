@@ -3,7 +3,7 @@
     "scope": "javascript",
     "prefix": "main",
     "body": [
-      "const readInput = require('../../lib/readInput');",
+      "const readInput = require('../lib/readInput');",
       "",
       "(async() => {",
       "\tconst input = await readInput();",

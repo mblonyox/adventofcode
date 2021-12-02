@@ -1,6 +1,6 @@
 const { createBitmapFile } = require('@ericandrewlewis/bitmap');
-const readInput = require('../../lib/readInput');
-const { create2dArray, flatMap, mapCount } = require('../../lib/array');
+const readInput = require('../lib/readInput');
+const { create2dArray, flatMap, mapCount } = require('../lib/array');
 
 (async() => {
   const input = await readInput();

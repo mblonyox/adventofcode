@@ -1,5 +1,5 @@
-const readInput = require('../../lib/readInput');
-const { deepCopy } = require('../../lib/object');
+const readInput = require('../lib/readInput');
+const { deepCopy } = require('../lib/object');
 
 (async () => {
   const inputText = await readInput();

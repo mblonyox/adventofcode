@@ -1,5 +1,5 @@
-const readInput = require('../../lib/readInput');
-const { arraySum, arraySet } = require('../../lib/array');
+const readInput = require('../lib/readInput');
+const { arraySum, arraySet } = require('../lib/array');
 
 (async() => {
   const input = await readInput();

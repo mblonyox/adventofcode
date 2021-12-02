@@ -1,4 +1,4 @@
-const readInput = require('../../lib/readInput');
+const readInput = require('../lib/readInput');
 
 const part1 = (input) => {
   return input.split('').reduce((t,v,i) => {
