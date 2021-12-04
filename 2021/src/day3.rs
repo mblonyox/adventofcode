@@ -72,6 +72,7 @@ pub fn part2(input: &str) -> i32 {
 }
 
 mod tests {
+    #[allow(dead_code)]
     static  SAMPLE_INPUT: &'static str = r#"00100
 11110
 10110
