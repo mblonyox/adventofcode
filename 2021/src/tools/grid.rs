@@ -1,4 +1,9 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    iter::FromIterator,
+    ops::{Index, IndexMut},
+};
+
+use super::cartesian::Point;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -23,6 +28,14 @@ impl<T> Grid<T> {
         }
     }
 
+    pub fn rows_num(&self) -> usize {
+        self.rows_num
+    }
+
+    pub fn cols_num(&self) -> usize {
+        self.cols_num
+    }
+
     pub fn get(&self, row: usize, col: usize) -> Option<&T> {
         self.get_data_index(row, col).map(|i| &self.data[i])
     }
@@ -38,6 +51,22 @@ impl<T> Grid<T> {
                 *target = value;
             })
             .ok_or_else(|| GridError::IndicesOutOfBounds(row, column))
+    }
+
+    pub fn get_point(&self, p: &Point) -> Option<&T> {
+        if p.x().is_negative() || p.y().is_negative() {
+            None
+        } else {
+            self.get(p.y() as usize, p.x() as usize)
+        }
+    }
+
+    pub fn get_mut_point(&mut self, p: &Point) -> Option<&mut T> {
+        if p.x().is_negative() || p.y().is_negative() {
+            None
+        } else {
+            self.get_mut(p.y() as usize, p.x() as usize)
+        }
     }
 
     pub fn iter_cell(&self) -> impl Iterator<Item = ((usize, usize), &T)> + '_ {
@@ -66,6 +95,28 @@ impl<T> Default for Grid<T> {
     }
 }
 
+impl<T, R> FromIterator<R> for Grid<T>
+where
+    R: Iterator<Item = T>,
+{
+    fn from_iter<I: IntoIterator<Item = R>>(iter: I) -> Self {
+        let mut data = vec![];
+        let mut rows_num = 0;
+        let mut cols_num = 0;
+        for row in iter.into_iter() {
+            let mut v = row.collect::<Vec<T>>();
+            rows_num += 1;
+            cols_num = v.len();
+            data.append(&mut v);
+        }
+        Grid {
+            data,
+            rows_num,
+            cols_num,
+        }
+    }
+}
+
 impl<T> Index<(usize, usize)> for Grid<T> {
     type Output = T;
 
@@ -88,26 +139,38 @@ impl<T> Index<(i32, i32)> for Grid<T> {
     type Output = T;
 
     fn index(&self, (x, y): (i32, i32)) -> &Self::Output {
-        if x.is_negative() || y.is_negative() {
-            panic!("Coordinate is negative x: {}, y: {}", x, y)
-        } else {
-            match self.get(y as usize, x as usize) {
-                Some(x) => x,
-                None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
-            }
+        match self.get_point(&Point { x, y }) {
+            Some(x) => x,
+            None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
         }
     }
 }
 
 impl<T> IndexMut<(i32, i32)> for Grid<T> {
     fn index_mut(&mut self, (x, y): (i32, i32)) -> &mut Self::Output {
-        if x.is_negative() || y.is_negative() {
-            panic!("Coordinate is negative x: {}, y: {}", x, y)
-        } else {
-            match self.get_mut(y as usize, x as usize) {
-                Some(x) => x,
-                None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
-            }
+        match self.get_mut_point(&Point { x, y }) {
+            Some(x) => x,
+            None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
+        }
+    }
+}
+
+impl<T> Index<&Point> for Grid<T> {
+    type Output = T;
+
+    fn index(&self, p: &Point) -> &Self::Output {
+        match self.get_point(p) {
+            Some(x) => x,
+            None => (|| panic!("Point out of bounds! Point: {:?}", p))(),
+        }
+    }
+}
+
+impl<T> IndexMut<&Point> for Grid<T> {
+    fn index_mut(&mut self, p: &Point) -> &mut Self::Output {
+        match self.get_mut_point(p) {
+            Some(x) => x,
+            None => (|| panic!("Point out of bounds! Point: {:?}", p))(),
         }
     }
 }
