@@ -11,7 +11,7 @@ pub enum GridError {
     IndicesOutOfBounds(usize, usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Grid<T> {
     data: Vec<T>,
     rows_num: usize,
@@ -20,13 +20,7 @@ pub struct Grid<T> {
 
 #[allow(dead_code)]
 impl<T> Grid<T> {
-    pub fn new() -> Self {
-        Self {
-            data: vec![],
-            rows_num: 0,
-            cols_num: 0,
-        }
-    }
+    pub fn new(data: Vec<T>, rows_num: usize, cols_num: usize) -> Self { Self { data, rows_num, cols_num } }
 
     pub fn rows_num(&self) -> usize {
         self.rows_num
@@ -89,12 +83,6 @@ impl<T> Grid<T> {
     }
 }
 
-impl<T> Default for Grid<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<T, R> FromIterator<R> for Grid<T>
 where
     R: Iterator<Item = T>,
@@ -139,7 +127,7 @@ impl<T> Index<(i32, i32)> for Grid<T> {
     type Output = T;
 
     fn index(&self, (x, y): (i32, i32)) -> &Self::Output {
-        match self.get_point(&Point { x, y }) {
+        match self.get_point(&Point::new(x, y)) {
             Some(x) => x,
             None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
         }
@@ -148,7 +136,7 @@ impl<T> Index<(i32, i32)> for Grid<T> {
 
 impl<T> IndexMut<(i32, i32)> for Grid<T> {
     fn index_mut(&mut self, (x, y): (i32, i32)) -> &mut Self::Output {
-        match self.get_mut_point(&Point { x, y }) {
+        match self.get_mut_point(&Point::new(x, y)) {
             Some(x) => x,
             None => (|| panic!("Coordinate out of bounds x: {}, y: {}", x, y))(),
         }
