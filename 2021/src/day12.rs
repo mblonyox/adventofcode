@@ -1,19 +1,18 @@
 use std::collections::HashSet;
 
-pub struct CaveMaps(Vec<(String, String)>);
-
-impl<'a> CaveMaps {
-    pub fn next_caves(&'a self, cave: &'a str) -> impl Iterator<Item = &String> + 'a {
-        self.0.iter().filter_map(move |(from, to)| {
-            if cave == from {
-                Some(to)
-            } else if cave == to {
-                Some(from)
-            } else {
-                None
-            }
-        })
-    }
+fn next_caves<'a>(
+    maps: &'a Vec<(String, String)>,
+    cave: &'a str,
+) -> impl Iterator<Item = &'a String> {
+    maps.iter().filter_map(move |(from, to)| {
+        if cave == from {
+            Some(to)
+        } else if cave == to {
+            Some(from)
+        } else {
+            None
+        }
+    })
 }
 
 fn cave_is_big(cave: &str) -> bool {
@@ -35,27 +34,25 @@ fn path_has_duplicate_small_cave(path: &[String]) -> bool {
 }
 
 #[aoc_generator(day12)]
-fn parse(input: &str) -> CaveMaps {
-    CaveMaps(
-        input
-            .lines()
-            .map(|l| {
-                let mut caves = l.split('-');
-                (
-                    caves.next().unwrap().to_string(),
-                    caves.next().unwrap().to_string(),
-                )
-            })
-            .collect(),
-    )
+fn parse(input: &str) -> Vec<(String, String)> {
+    input
+        .lines()
+        .map(|l| {
+            let mut caves = l.split('-');
+            (
+                caves.next().unwrap().to_string(),
+                caves.next().unwrap().to_string(),
+            )
+        })
+        .collect()
 }
 
 #[aoc(day12, part1)]
-pub fn part1(input: &CaveMaps) -> i32 {
+pub fn part1(input: &Vec<(String, String)>) -> i32 {
     let mut paths = vec![vec![String::from("start")]];
     let mut result = 0;
     while let Some(path) = paths.pop() {
-        for next in input.next_caves(path.last().unwrap()) {
+        for next in next_caves(input, path.last().unwrap()) {
             if next == "end" {
                 result += 1;
                 // println!("{}-end", path.join("-"));
@@ -69,17 +66,18 @@ pub fn part1(input: &CaveMaps) -> i32 {
     result
 }
 #[aoc(day12, part2)]
-pub fn part2(input: &CaveMaps) -> i32 {
+pub fn part2(input: &Vec<(String, String)>) -> i32 {
     let mut paths = vec![vec![String::from("start")]];
     let mut result = 0;
     while let Some(path) = paths.pop() {
-        for next in input.next_caves(path.last().unwrap()) {
+        for next in next_caves(input, path.last().unwrap()) {
             if next == "end" {
                 result += 1;
                 // println!("{}-end", path.join("-"));
-            } else if next != "start" && (cave_is_big(next)
-                || !path.contains(next)
-                || !path_has_duplicate_small_cave(&path))
+            } else if next != "start"
+                && (cave_is_big(next)
+                    || !path.contains(next)
+                    || !path_has_duplicate_small_cave(&path))
             {
                 let mut new_path = path.clone();
                 new_path.push(next.clone());
@@ -138,9 +136,9 @@ start-RW"#;
         let medium_input = parse(SAMPLE_MEDIUM_INPUT);
         let large_input = parse(SAMPLE_LARGE_INPUT);
 
-        assert_eq!(small_input.0.len(), 7);
-        assert_eq!(medium_input.0.len(), 10);
-        assert_eq!(large_input.0.len(), 18);
+        assert_eq!(small_input.len(), 7);
+        assert_eq!(medium_input.len(), 10);
+        assert_eq!(large_input.len(), 18);
     }
 
     #[test]
