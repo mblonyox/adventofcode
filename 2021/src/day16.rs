@@ -6,7 +6,7 @@ enum OperatorID {
     Maximum,
     GreaterThan,
     LessThan,
-    Equal
+    Equal,
 }
 
 #[derive(Debug)]
@@ -48,19 +48,23 @@ impl Packet {
                         let mut iter = subpacket_values.take(2);
                         let first = iter.next().unwrap();
                         let second = iter.next().unwrap();
-                        if $predicate(first, second) {1} else {0}
-                    }}
+                        if $predicate(first, second) {
+                            1
+                        } else {
+                            0
+                        }
+                    }};
                 }
                 match operator_id {
-                OperatorID::Sum => subpacket_values.sum(),
-                OperatorID::Product => subpacket_values.product(),
-                OperatorID::Minimum => subpacket_values.min().unwrap(),
-                OperatorID::Maximum => subpacket_values.max().unwrap(),
-                OperatorID::GreaterThan => check_equal!((|a, b| a > b)),
-                OperatorID::LessThan => check_equal!((|a, b| a < b)),
-                OperatorID::Equal => check_equal!((|a, b| a == b)),
+                    OperatorID::Sum => subpacket_values.sum(),
+                    OperatorID::Product => subpacket_values.product(),
+                    OperatorID::Minimum => subpacket_values.min().unwrap(),
+                    OperatorID::Maximum => subpacket_values.max().unwrap(),
+                    OperatorID::GreaterThan => check_equal!((|a, b| a > b)),
+                    OperatorID::LessThan => check_equal!((|a, b| a < b)),
+                    OperatorID::Equal => check_equal!((|a, b| a == b)),
+                }
             }
-        },
         }
     }
 }
@@ -98,7 +102,7 @@ fn parse_packet(bits: &str) -> (Packet, &str) {
                 "101" => OperatorID::GreaterThan,
                 "110" => OperatorID::LessThan,
                 "111" => OperatorID::Equal,
-                _ => unreachable!("OperatorID must be one of the enum!")
+                _ => unreachable!("OperatorID must be one of the enum!"),
             };
             let mut subpackets = vec![];
             let mut rest_bits = bits;
@@ -188,7 +192,12 @@ mod tests {
         assert_eq!(rest_bits1, "000");
         let (packet2, _) = parse_packet("00111000000000000110111101000101001010010001001000000000");
         assert!(matches!(packet2, Packet::Operator { version: 1, .. }));
-        if let Packet::Operator { operator_id, subpackets, .. } = packet2 {
+        if let Packet::Operator {
+            operator_id,
+            subpackets,
+            ..
+        } = packet2
+        {
             assert!(matches!(operator_id, OperatorID::LessThan));
             assert_eq!(subpackets.len(), 2);
             assert!(matches!(
@@ -202,7 +211,12 @@ mod tests {
         }
         let (packet3, _) = parse_packet("11101110000000001101010000001100100000100011000001100000");
         assert!(matches!(packet3, Packet::Operator { version: 7, .. }));
-        if let Packet::Operator { operator_id, subpackets, .. } = packet3 {
+        if let Packet::Operator {
+            operator_id,
+            subpackets,
+            ..
+        } = packet3
+        {
             assert!(matches!(operator_id, OperatorID::Maximum));
             assert_eq!(subpackets.len(), 3);
             assert!(matches!(
