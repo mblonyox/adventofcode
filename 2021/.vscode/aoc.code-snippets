@@ -1,0 +1,7 @@
+{
+  "AoC Solution Snippet": {
+    "scope": "rust",
+    "prefix": "aoc",
+    "body": "#[aoc(day$1, part1)]\npub fn part1(input: &str) -> i32 {\n    todo!(\"{}\", input)\n}\n\n#[aoc(day$1, part2)]\npub fn part2(input: &str) -> i32 {\n    todo!(\"{}\", input)\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    const SAMPLE_INPUT: &str = r#\"\"#;\n        #[test]\n    fn sample_part1() {\n        todo!(\"{}\", part1(SAMPLE_INPUT))\n    }\n\n    #[test]\n    fn sample_part2() {\n        todo!(\"{}\", part2(SAMPLE_INPUT))\n    }\n}"
+  }
+}
