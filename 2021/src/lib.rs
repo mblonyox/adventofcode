@@ -3,7 +3,7 @@ extern crate aoc_runner_derive;
 
 use aoc_runner_derive::aoc_lib;
 
-mod tools;
+pub mod tools;
 
 pub mod day1;
 pub mod day2;
@@ -21,5 +21,6 @@ pub mod day13;
 pub mod day14;
 pub mod day15;
 pub mod day16;
+pub mod day17;
 
 aoc_lib! { year = 2021 }
