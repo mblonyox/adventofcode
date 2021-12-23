@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::RangeInclusive};
+use std::ops::RangeInclusive;
 
 use regex::Regex;
 
@@ -80,66 +80,41 @@ fn get_grids(procs: &[Proc]) -> (Vec<i32>, Vec<i32>, Vec<i32>) {
     (x_grid, y_grid, z_grid)
 }
 
-fn get_sub_cubes(cube: &Cube, grids: &(Vec<i32>, Vec<i32>, Vec<i32>)) -> HashSet<Cube> {
-    let (x_grid, y_grid, z_grid) = grids;
-    let mut cube_set = HashSet::new();
+fn reboot(procs: &[Proc]) -> i64 {
+    let mut result = 0;
+    let (x_grid, y_grid, z_grid) = get_grids(procs);
+    let mut procs = procs.to_owned();
+    procs.reverse();
     for i in 1..x_grid.len() {
         let x_start = x_grid[i - 1];
         let x_end = x_grid[i] - 1;
-        if x_end < *cube.x.start() {
-            continue;
-        }
-        if x_start > *cube.x.end() {
-            break;
-        }
         let x = x_start..=x_end;
-
         for i in 1..y_grid.len() {
             let y_start = y_grid[i - 1];
             let y_end = y_grid[i] - 1;
-            if y_end < *cube.y.start() {
-                continue;
-            }
-            if y_start > *cube.y.end() {
-                break;
-            }
             let y = y_start..=y_end;
             for i in 1..z_grid.len() {
                 let z_start = z_grid[i - 1];
                 let z_end = z_grid[i] - 1;
-                if z_end < *cube.z.start() {
-                    continue;
-                }
-                if z_start > *cube.z.end() {
-                    break;
-                }
                 let x = x.clone();
                 let y = y.clone();
                 let z = z_start..=z_end;
                 let cube = Cube { x, y, z };
-                cube_set.insert(cube);
+                if let Some(Proc::On(_)) = procs
+                    .iter()
+                    .filter(|proc| {
+                        let (Proc::On(proc_cube) | Proc::Off(proc_cube)) = proc;
+                        proc_cube.contains_cube(&cube)
+                    })
+                    .next()
+                {
+                    result += cube.volume();
+                }
             }
         }
     }
-    cube_set
-}
 
-fn reboot(procs: &[Proc]) -> i64 {
-    let mut cube_set = HashSet::new();
-    let grids = get_grids(procs);
-    for proc in procs {
-        match proc {
-            Proc::On(cube) => {
-                cube_set.extend(get_sub_cubes(cube, &grids));
-            }
-            Proc::Off(cube) => {
-                get_sub_cubes(cube, &grids).iter().for_each(|c| {
-                    cube_set.remove(c);
-                });
-            }
-        }
-    }
-    cube_set.iter().map(|c| c.volume()).sum()
+    result
 }
 
 #[aoc(day22, part1)]
