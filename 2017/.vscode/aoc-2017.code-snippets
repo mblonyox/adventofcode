@@ -1,0 +1,13 @@
+{  "Add starter async main function" : {
+  "scope": "javascript",
+  "prefix": "main",
+  "body": [
+    "const readInput = require('../lib/readInput');",
+    "",
+    "(async() => {",
+    "\tconst input = await readInput();",
+    "\t$0",
+    "})();",
+    ""
+  ]
+},}

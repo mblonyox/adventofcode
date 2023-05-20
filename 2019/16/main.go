@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mblonyox/adventofcode/pkg/tools/parser"
-	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
+	"github.com/mblonyox/adventofcode/2019/pkg/tools/parser"
+	"github.com/mblonyox/adventofcode/2019/pkg/tools/spinner"
 )
 
 var pattern = []int{1, 0, -1, 0}

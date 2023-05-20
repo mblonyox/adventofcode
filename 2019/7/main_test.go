@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/mblonyox/adventofcode/pkg/tools/parser"
+	"github.com/mblonyox/adventofcode/2019/pkg/tools/parser"
 )
 
 func TestAmplifiers(t *testing.T) {

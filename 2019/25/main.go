@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/mblonyox/adventofcode/pkg/2019/intcode"
-	"github.com/mblonyox/adventofcode/pkg/tools/parser"
+	"github.com/mblonyox/adventofcode/2019/pkg/intcode"
+	"github.com/mblonyox/adventofcode/2019/pkg/tools/parser"
 )
 
 func main() {

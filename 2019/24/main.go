@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mblonyox/adventofcode/pkg/tools/spinner"
+	"github.com/mblonyox/adventofcode/2019/pkg/tools/spinner"
 )
 
 func main() {
