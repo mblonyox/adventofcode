@@ -7,3 +7,4 @@ Ini adalah repository untuk solusi Advent of Code. Setiap tahun saya akan mencob
 - 2020: Python/Jupyter
 - 2021: Rust
 - 2022: TypeScript/Deno
+- 2023: Elixir
