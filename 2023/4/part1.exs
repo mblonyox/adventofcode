@@ -5,23 +5,15 @@ parse_numbers = fn numbers ->
 end
 
 parse_line = fn line ->
-  [card_id, winning_numbers, owned_numbers] =
-    line
-    |> String.trim()
-    |> String.split([":", "|"])
-
-  %{
-    id:
-      card_id
-      |> String.split(~r/\s+/)
-      |> List.last()
-      |> String.to_integer(),
-    winning: parse_numbers.(winning_numbers),
-    owned: parse_numbers.(owned_numbers)
-  }
+  line
+  |> String.trim()
+  |> String.split([":", "|"])
+  |> tl()
+  |> Enum.map(parse_numbers)
+  |> List.to_tuple()
 end
 
-process_card = fn %{winning: winning, owned: owned} ->
+process_card = fn {winning, owned} ->
   owned
   |> Enum.count(&Enum.member?(winning, &1))
   |> case do
