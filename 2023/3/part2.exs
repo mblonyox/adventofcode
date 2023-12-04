@@ -1,5 +1,3 @@
-input = Enum.at(System.argv(), 0) || "input.txt"
-
 parse_line = fn {line, index} ->
   Regex.scan(~r/\d+|[^\d\.]/, line, return: :index)
   |> Enum.map(&Kernel.hd/1)
@@ -28,12 +26,10 @@ process_numbers = fn %{numbers: numbers, symbols: symbols} ->
   |> Enum.sum()
 end
 
-result =
-  File.stream!(input)
-  |> Stream.map(&String.trim/1)
-  |> Stream.with_index()
-  |> Stream.flat_map(parse_line)
-  |> Enum.group_by(&((is_integer(elem(&1, 0)) && :numbers) || :symbols))
-  |> process_numbers.()
-
-IO.inspect(result, label: "Result")
+Aoc2023.input_stream(3)
+|> Stream.map(&String.trim/1)
+|> Stream.with_index()
+|> Stream.flat_map(parse_line)
+|> Enum.group_by(&((is_integer(elem(&1, 0)) && :numbers) || :symbols))
+|> then(process_numbers)
+|> IO.inspect(label: "Result")

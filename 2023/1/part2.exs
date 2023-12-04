@@ -1,5 +1,3 @@
-input = Enum.at(System.argv(), 0) || "input.txt"
-
 digits = %{
   "1" => 1,
   "one" => 1,
@@ -36,10 +34,7 @@ parse_line = fn line ->
   |> then(fn {d1, d2} -> d1 * 10 + d2 end)
 end
 
-result =
-  File.stream!(input)
-  |> Stream.map(parse_line)
-  # |> Stream.map(&IO.inspect/1)
-  |> Enum.sum()
-
-IO.inspect(result, label: "Result")
+Aoc2023.input_stream(1)
+|> Stream.map(parse_line)
+|> Enum.sum()
+|> IO.inspect(label: "result")
