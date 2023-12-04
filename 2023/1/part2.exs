@@ -1,5 +1,6 @@
+input = Enum.at(System.argv(), 0) || "input.txt"
+
 digits = %{
-  "0" => 0,
   "1" => 1,
   "one" => 1,
   "2" => 2,
@@ -20,18 +21,25 @@ digits = %{
   "nine" => 9
 }
 
-read_document = fn doc ->
-  :binary.matches(doc, Map.keys(digits)) |>
-  (&[hd(&1), :lists.last(&1)]).() |>
-  Enum.map(&digits[:binary.part(doc, &1)]) |>
-  (fn [d1, d2] -> d1 * 10 + d2 end).()
+pattern = Map.keys(digits)
+r_pattern = Enum.map(pattern, &String.reverse/1)
+
+parse_line = fn line ->
+  r_line = String.reverse(line)
+
+  {:binary.match(line, pattern)
+   |> then(&:binary.part(line, &1))
+   |> then(&digits[&1]),
+   :binary.match(r_line, r_pattern)
+   |> then(&:binary.part(r_line, &1))
+   |> then(&digits[String.reverse(&1)])}
+  |> then(fn {d1, d2} -> d1 * 10 + d2 end)
 end
 
-input = Enum.at(System.argv(), 0) || "input.txt"
-
-result = File.stream!(input) |>
-  Stream.map(read_document) |>
-  Stream.map(&IO.inspect/1) |>
-  Enum.sum()
+result =
+  File.stream!(input)
+  |> Stream.map(parse_line)
+  # |> Stream.map(&IO.inspect/1)
+  |> Enum.sum()
 
 IO.inspect(result, label: "Result")
