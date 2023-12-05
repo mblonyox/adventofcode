@@ -3,12 +3,12 @@ defmodule Aoc2023 do
   Documentation for `Aoc2023`.
   """
 
-  def input_stream(day) do
+  def input_stream(file) do
     System.argv()
     |> Enum.at(0)
-    |> Kernel.||("./#{day}/input.txt")
+    |> Kernel.||(Path.join(file, "../input.txt"))
     |> then(&(File.exists?(&1) && File.stream!(&1)))
-    |> Kernel.||(get_input(day))
+    |> Kernel.||(get_input(file))
   end
 
   defp get_session_cookie do
@@ -16,11 +16,16 @@ defmodule Aoc2023 do
     |> Kernel.||(IO.gets("Please provide adventofcode.com session cookie value:\n"))
   end
 
-  defp get_input(day) do
-    Req.get!("https://adventofcode.com/2023/day/#{day}/input",
-      headers: %{cookie: "session=" <> get_session_cookie()}
-    ).body
-    |> tap(&File.write!("./#{day}/input.txt", &1))
+  defp get_input(file) do
+    file
+    |> Path.dirname()
+    |> Path.basename()
+    |> then(
+      &Req.get!("https://adventofcode.com/2023/day/#{&1}/input",
+        headers: %{cookie: "session=" <> get_session_cookie()}
+      ).body
+    )
+    |> tap(&File.write!(Path.join(file, "../input.txt"), &1))
     |> StringIO.open()
     |> elem(1)
     |> IO.stream(:line)

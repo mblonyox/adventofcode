@@ -26,7 +26,8 @@ process_numbers = fn %{numbers: numbers, symbols: symbols} ->
   |> Enum.sum()
 end
 
-Aoc2023.input_stream(3)
+__ENV__.file
+|> Aoc2023.input_stream()
 |> Stream.map(&String.trim/1)
 |> Stream.with_index()
 |> Stream.flat_map(parse_line)

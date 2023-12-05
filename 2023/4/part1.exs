@@ -22,7 +22,8 @@ process_card = fn {winning, owned} ->
   end
 end
 
-Aoc2023.input_stream(4)
+__ENV__.file
+|> Aoc2023.input_stream()
 |> Stream.map(parse_line)
 |> Stream.map(process_card)
 |> Enum.sum()

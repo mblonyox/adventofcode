@@ -34,7 +34,8 @@ count_power = fn %{infos: infos} ->
   |> Enum.product()
 end
 
-Aoc2023.input_stream(2)
+__ENV__.file
+|> Aoc2023.input_stream()
 |> Stream.map(parse_record)
 |> Stream.map(count_power)
 |> Enum.sum()

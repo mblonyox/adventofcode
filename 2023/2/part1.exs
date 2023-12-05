@@ -28,7 +28,8 @@ check_possibility = fn %{infos: infos} ->
   |> Kernel.!()
 end
 
-Aoc2023.input_stream(2)
+__ENV__.file
+|> Aoc2023.input_stream()
 |> Stream.map(parse_record)
 |> Stream.filter(check_possibility)
 |> Stream.map(&Map.fetch!(&1, :id))

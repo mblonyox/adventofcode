@@ -31,7 +31,8 @@ process_card = fn {winning, owned}, {copies, total} ->
   |> then(&{&1, total + current})
 end
 
-Aoc2023.input_stream(4)
+__ENV__.file
+|> Aoc2023.input_stream()
 |> Stream.map(parse_line)
 |> Enum.reduce({[], 0}, process_card)
 |> then(&elem(&1, 1))
