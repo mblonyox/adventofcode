@@ -18,16 +18,34 @@ parse_line = fn line, {sect, list} = acc ->
 end
 
 process_almanac = fn [{"seeds", seeds} | maps] ->
-  seeds
-  |> Enum.map(fn num ->
-    maps
-    |> Enum.reduce(num, fn {_, list}, acc ->
+  seeds =
+    seeds
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [start, len] -> start..(start + len - 1) end)
+
+  maps
+  |> Enum.map(fn {_, list} -> list end)
+  |> Enum.reduce(seeds, fn list, acc ->
+    acc
+    |> Enum.flat_map(fn range ->
       list
-      |> Enum.find_value(acc, fn {src, delta} ->
-        if Enum.member?(src, acc), do: acc + delta, else: nil
+      |> Enum.flat_map(fn {src, _} -> [src.first - 1, src.first, src.last, src.last + 1] end)
+      |> Enum.filter(&(&1 >= range.first and &1 <= range.last))
+      |> Enum.concat([range.first, range.last])
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn [first, last] ->
+        range = first..last
+
+        list
+        |> Enum.find_value(range, fn {src, delta} ->
+          if !Range.disjoint?(src, range), do: Range.shift(range, delta), else: nil
+        end)
       end)
     end)
   end)
+  |> Enum.map(& &1.first)
   |> Enum.min()
 end
 
