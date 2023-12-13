@@ -38,41 +38,23 @@ traverse_map = fn map ->
     |> Map.to_list()
     |> Enum.filter(&(elem(&1, 1) |> Enum.member?(start)))
     |> Enum.map(&elem(&1, 0))
-    |> then(&Map.replace!(map, start, &1))
+    |> then(&Map.replace(map, start, &1))
 
   map
   |> Map.to_list()
   |> length()
-  |> Range.new(0)
-  |> Enum.reduce({0, [{start, %MapSet{}}]}, fn _, {max, list} ->
-    list
-    |> Enum.flat_map(fn {pos, history} ->
-      history
-      |> MapSet.member?(pos)
-      |> Kernel.or(!Map.has_key?(map, pos))
-      |> then(&MapSet.to_list(history))
-    end)
+  |> then(&(0..&1))
+  |> Enum.reduce_while({[start], [start]}, fn steps, {positions, history} ->
+    if Enum.empty?(positions) do
+      {:halt, steps - 1}
+    else
+      positions
+      |> Enum.flat_map(&Map.get(map, &1, []))
+      |> Enum.reject(&Enum.member?(history, &1))
+      |> then(&{&1, Enum.concat(&1, history)})
+      |> then(&{:cont, &1})
+    end
   end)
-
-  #     case Map.get(map, pos) do
-  #       nil ->
-  #         history |> MapSet.to_list() |> length() |> then(&[&1])
-
-  #       list ->
-  #         list
-  #         |> Enum.map(fn next ->
-  #           history
-  #           |> MapSet.member?(next)
-  #           |> if do
-  #             history |> MapSet.to_list() |> length()
-  #           else
-  #             {next, MapSet.put(history, pos)}
-  #           end
-  #         end)
-  #     end
-  #   end)
-  #   |> Enum.
-  # end)
 end
 
 __ENV__.file
