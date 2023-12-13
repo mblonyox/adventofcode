@@ -20,9 +20,8 @@ get_main_loop = fn map ->
       [{y - 1, x}, {y + 1, x}, {y, x - 1}, {y, x + 1}]
       |> Enum.zip(["|7F", "|JL", "-LF", "-7J"])
       |> Enum.find(fn {pos, chars} ->
-        map
-        |> Map.get(pos)
-        |> then(&String.contains?(chars, &1))
+        chars
+        |> String.contains?(Map.get(map, pos, "?"))
       end)
       |> elem(0)
       |> then(&[&1, {y, x}])
