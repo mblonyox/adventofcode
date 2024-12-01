@@ -1,15 +1,20 @@
 const std = @import("std");
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
     var a = std.mem.zeroes([1000]i32);
     var b = std.mem.zeroes([1000]i32);
     {
-        var stdin = std.io.getStdIn();
-        defer stdin.close();
-        var r = stdin.reader();
+        const allocator = gpa.allocator();
+        const input_path = try std.fs.cwd().realpathAlloc(allocator, "./input.txt");
+        defer allocator.free(input_path);
+        var input_file = try std.fs.openFileAbsolute(input_path, .{});
+        defer input_file.close();
+        var reader = input_file.reader();
         var buf: [4096]u8 = undefined;
         var i: usize = 0;
-        while (try r.readUntilDelimiterOrEof(&buf, 0xa)) |line| {
+        while (try reader.readUntilDelimiterOrEof(&buf, 0xa)) |line| {
             a[i] = try std.fmt.parseInt(i32, line[0..5], 10);
             b[i] = try std.fmt.parseInt(i32, line[8..], 10);
             i += 1;
@@ -27,7 +32,6 @@ pub fn main() !void {
         std.debug.print("Part 1: {}\n", .{total});
     }
     {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         const allocator = gpa.allocator();
         var map = std.AutoHashMap(i32, u32).init(allocator);
         defer map.deinit();
