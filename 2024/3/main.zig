@@ -1,35 +1,30 @@
 const std = @import("std");
+const raw_input = @embedFile("input.txt");
+
+const Allocator = std.mem.Allocator;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
-    var input: Input = undefined;
+    const input: Input = try parseInput(allocator, raw_input);
     defer input.deinit();
-    {
-        const input_path = try std.fs.cwd().realpathAlloc(allocator, "./input.txt");
-        defer allocator.free(input_path);
-        var input_file = try std.fs.openFileAbsolute(input_path, .{});
-        defer input_file.close();
-        const reader = input_file.reader();
-        input = try parseInput(allocator, reader);
-    }
-    const result1 = part1(input);
-    std.debug.print("Part 1: {}\n", .{result1});
-    const result2 = part2(input);
-    std.debug.print("Part 2: {}\n", .{result2});
+    const result_1 = part1(input);
+    std.debug.print("Part 1: {}\n", .{result_1});
+    const result_2 = part2(input);
+    std.debug.print("Part 2: {}\n", .{result_2});
 }
 
 const Input = struct {
     data: []const u8,
-    allocator: std.mem.Allocator,
+    allocator: Allocator,
     fn deinit(self: Input) void {
         self.allocator.free(self.data);
     }
 };
 
-fn parseInput(allocator: std.mem.Allocator, reader: anytype) !Input {
-    const data = try reader.readAllAlloc(allocator, std.math.maxInt(usize));
+fn parseInput(allocator: Allocator, str: []const u8) !Input {
+    const data = try allocator.dupe(u8, str);
     return .{ .data = data, .allocator = allocator };
 }
 
@@ -38,12 +33,7 @@ test "parseInput" {
     const example =
         \\xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
     ;
-    const BytesFifo = std.fifo.LinearFifo(u8, .{ .Static = 256 });
-    var fifo: BytesFifo = BytesFifo.init();
-    defer fifo.deinit();
-    const reader = fifo.reader();
-    try fifo.write(example[0..]);
-    const input = try parseInput(allocator, reader);
+    const input = try parseInput(allocator, example);
     defer input.deinit();
     try std.testing.expectEqual(71, input.data.len);
 }
