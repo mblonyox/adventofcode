@@ -53,15 +53,26 @@ test parseInput {
 }
 
 fn part1(allocator: Allocator, input: Input) !u32 {
+    _ = allocator;
+    const src = input.data;
+    var buffer: [3]u8 = undefined;
     var result: u32 = 0;
-    for (0..4) |i| {
-        var arena = std.heap.ArenaAllocator.init(allocator);
-        defer arena.deinit();
-        const arenaAllocator = arena.allocator();
-        var matrix = input.data;
-        if ((i & 1) != 0) matrix = try rotate(arenaAllocator, matrix);
-        if ((i & 2) != 0) matrix = try diagonal(arenaAllocator, matrix);
-        result += try wordSearch(allocator, matrix, "XMAS");
+    for (0.., src) |i, row| {
+        for (0.., row) |j, c| {
+            if (c != 'X') continue;
+            for (0..8) |d| {
+                const di: i32 = if (d == 4 or d == 7) 0 else if (d & 1 != 0) 1 else -1;
+                const dj: i32 = if (d == 5 or d == 6) 0 else if (d & 2 != 0) 1 else -1;
+                if (di < 0 and i < 3) continue;
+                if (di > 0 and i >= src.len - 3) continue;
+                if (dj < 0 and j < 3) continue;
+                if (dj > 0 and j >= row.len - 3) continue;
+                const si: i32 = @intCast(i);
+                const sj: i32 = @intCast(j);
+                for ([_]i32{ 1, 2, 3 }) |x| @memset(buffer[@intCast(x - 1)..@intCast(x)], src[@intCast(si + x * di)][@intCast(sj + x * dj)]);
+                if (std.mem.eql(u8, &buffer, "MAS")) result += 1;
+            }
+        }
     }
     return result;
 }
@@ -98,55 +109,4 @@ test part2 {
     const input = try parseInput(allocator, example);
     defer input.deinit();
     try std.testing.expectEqual(9, try part2(allocator, input));
-}
-
-fn rotate(allocator: Allocator, src: []const []const u8) ![]const []const u8 {
-    const dest = try allocator.alloc([]u8, src[0].len);
-    for (dest) |*row| row.* = try allocator.alloc(u8, src.len);
-    for (0.., src) |i, row| {
-        for (1.., row) |j, c| dest[row.len - j][i] = c;
-    }
-    return dest;
-}
-
-fn diagonal(allocator: Allocator, source: []const []const u8) ![]const []const u8 {
-    const max_row = source.len;
-    const max_col = source[0].len;
-    var array_list = std.ArrayList([]u8).init(allocator);
-    defer array_list.deinit();
-    for (0..max_row) |row| {
-        var list = std.ArrayList(u8).init(allocator);
-        defer list.deinit();
-        var i: usize = row;
-        var j: usize = 0;
-        while (i < max_row and j < max_col) : ({
-            i += 1;
-            j += 1;
-        }) try list.append(source[i][j]);
-        try array_list.append(try list.toOwnedSlice());
-    }
-    for (1..max_col) |col| {
-        var list = std.ArrayList(u8).init(allocator);
-        defer list.deinit();
-        var i: usize = 0;
-        var j: usize = col;
-        while (i < max_row and j < max_col) : ({
-            i += 1;
-            j += 1;
-        }) try list.append(source[i][j]);
-        try array_list.insert(0, try list.toOwnedSlice());
-    }
-    return array_list.toOwnedSlice();
-}
-
-fn wordSearch(allocator: Allocator, source: []const []const u8, word: []const u8) !u32 {
-    var result: u32 = 0;
-    for (source) |s| {
-        const r = try allocator.dupe(u8, s);
-        defer allocator.free(r);
-        std.mem.reverse(u8, r);
-        result += @intCast(std.mem.count(u8, r, word));
-        result += @intCast(std.mem.count(u8, s, word));
-    }
-    return result;
 }
