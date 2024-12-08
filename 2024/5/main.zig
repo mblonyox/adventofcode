@@ -47,7 +47,7 @@ pub fn main() !void {
 }
 
 const Input = struct {
-    data: struct { rules: []const struct { u8, u8 }, updates: []const []const u8 },
+    data: struct { rules: []const [2]u8, updates: []const []const u8 },
     allocator: Allocator,
     fn deinit(self: Input) void {
         self.allocator.free(self.data.rules);
@@ -59,7 +59,7 @@ const Input = struct {
 fn parseInput(allocator: Allocator, str: []const u8) !Input {
     const separator = std.mem.indexOf(u8, str, "\n\n") orelse return error.InvalidInput;
     const rules = blk: {
-        var list = std.ArrayList(struct { u8, u8 }).init(allocator);
+        var list = std.ArrayList([2]u8).init(allocator);
         defer list.deinit();
         var lines = std.mem.tokenizeScalar(u8, str[0..separator], '\n');
         while (lines.next()) |line| {
@@ -129,7 +129,7 @@ test part2 {
     try std.testing.expectEqual(123, try part2(allocator, input));
 }
 
-fn indicesOfWrong(rules: []const struct { u8, u8 }, update: []const u8) ?struct { usize, usize } {
+fn indicesOfWrong(rules: []const [2]u8, update: []const u8) ?[2]usize {
     for (rules) |rule| {
         const i_0 = std.mem.indexOfScalar(u8, update, rule[0]) orelse continue;
         const i_1 = std.mem.indexOfScalar(u8, update, rule[1]) orelse continue;
