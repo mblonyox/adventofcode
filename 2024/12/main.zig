@@ -69,7 +69,7 @@ fn part1(input: Input) !u64 {
         var areas: u64 = 0;
         var perimeters: u64 = 0;
         const char = entry.value_ptr.*;
-        while (stacks.popOrNull()) |pos| {
+        while (stacks.pop()) |pos| {
             if (mapped.contains(pos)) continue;
             for (orthogonals) |value| {
                 const p = pos + value;
@@ -110,7 +110,7 @@ fn part2(input: Input) !u64 {
             sides_map.deinit();
         }
         const char = entry.value_ptr.*;
-        while (stacks.popOrNull()) |pos| {
+        while (stacks.pop()) |pos| {
             if (mapped.contains(pos)) continue;
             for (0.., orthogonals) |i, value| {
                 const p = pos + value;

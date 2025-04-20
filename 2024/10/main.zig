@@ -64,7 +64,7 @@ fn part1(input: Input) !u32 {
         var queue = std.ArrayList(Position).init(allocator);
         defer queue.deinit();
         try queue.append(entry.key_ptr.*);
-        while (queue.popOrNull()) |p| {
+        while (queue.pop()) |p| {
             const h = input.data.get(p).?;
             for (orthogonals) |d| {
                 const q = p + d;
@@ -96,7 +96,7 @@ fn part2(input: Input) !u64 {
         var queue = std.ArrayList(Position).init(allocator);
         defer queue.deinit();
         try queue.append(entry.key_ptr.*);
-        while (queue.popOrNull()) |p| {
+        while (queue.pop()) |p| {
             const h = input.data.get(p).?;
             for (orthogonals) |d| {
                 const q = p + d;
